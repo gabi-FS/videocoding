@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as matp
 from PIL import Image
 import scipy.ndimage
+#import tensorflow as tf
+
 
 class VideoParser():
     def __init__(self, file_name, height = 0, width = 0, fps = '', y_size = 0, cr_size = 0, cb_size = 0) -> None:
@@ -103,21 +105,9 @@ class VideoParser():
 
     def plot_frame(self, num_frame, filename=' '):
         '''Creates a .png from the chosen frame, using Image from PIL.'''
-        y, cb, cr = self.get_frame(num_frame)
-        ups_cb, ups_cr = cb, cr
-        if (self.__size[0]/self.__size[1]) == 4:
-            y = np.reshape(y, (int(self.__height), int(self.__width)))
-            cb = np.reshape(cb, (int(self.__height/2), int(self.__width/2)))
-            cr = np.reshape(cr, (int(self.__height/2), int(self.__width/2)))
-            ups_cb = np.kron(cb, np.ones((2,2), dtype=np.dtype('B')))
-            ups_cr = np.kron(cr, np.ones((2,2), dtype=np.dtype('B')))
-        try:
-            frame = np.stack((y, ups_cb, ups_cr), axis=2)
-            frame = np.reshape(frame, (self.__height, self.__width, 3))
-            print(frame.shape)
-            print(len(frame))
-            im = Image.fromarray(np.uint8(frame), "YCbCr")
-            #im.show()
+        try:    
+            frame = self.get_frame(num_frame)
+            im = self.frame_to_image(frame)
             im = im.convert("RGB")
             if filename == ' ':
                 filename = self.__file_name[:len(self.__file_name)-4] + '_' + str(num_frame)
@@ -131,9 +121,35 @@ class VideoParser():
         im = Image.fromarray(np.uint8(component_sample), "L")
         return im
 
+    def frame_to_image(self, frame):
+        y, cb, cr = frame
+        ups_cb, ups_cr = cb, cr
+        if (self.__size[0]/self.__size[1]) == 4:
+            y = np.reshape(y, (int(self.__height), int(self.__width)))
+            cb = np.reshape(cb, (int(self.__height/2), int(self.__width/2)))
+            cr = np.reshape(cr, (int(self.__height/2), int(self.__width/2)))
+            ups_cb = np.kron(cb, np.ones((2,2), dtype=np.dtype('B')))
+            ups_cr = np.kron(cr, np.ones((2,2), dtype=np.dtype('B')))
+        try:
+            frame = np.stack((y, ups_cb, ups_cr), axis=2)
+            frame = np.reshape(frame, (self.__height, self.__width, 3))
+            print(frame.shape)
+            print(len(frame))
+            im = Image.fromarray(np.uint8(frame), "YCbCr")
+            return im
+        except Exception as e:
+            print('Something went wrong!')
+            print(e)
+
 
 parser = VideoParser("ice_cif.y4m")
 y, cb, cr = parser.get_frame(40)
 parser.plot_component_frame(2)
 parser.plot_component_frame(2, sample=2)
 parser.plot_frame(2)
+f1 = parser.frame_to_image(parser.get_frame(2))
+f2 = parser.frame_to_image(parser.get_frame(2))
+#im1 = tf.image.convert_image_dtype(f2, tf.uint8)
+#im2 = tf.image.convert_image_dtype(f2, tf.uint8)
+#psnr2 = tf.image.psnr(im1, im2, max_val=255)
+#print(psnr2)
