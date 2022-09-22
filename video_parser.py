@@ -90,14 +90,13 @@ class VideoParser():
         print((self.__size[0]/self.__size[sample]))
         print(self.__height)
         if sample > 0:
-            component_sample = np.reshape(component_sample, (int(self.__height/(
-                (self.__size[0]/self.__size[sample]))*2), int(self.__width/((self.__size[0]/self.__size[sample]))*2)))
+            im = self.component_to_image(component_sample, (self.__size[0]/self.__size[sample])/2)
         else:
-            component_sample = np.reshape(component_sample, (int(self.__height), int(self.__width)))
+            im = self.component_to_image(component_sample)
         matp.figure()
         if filename == ' ':
             filename = self.__file_name[:len(self.__file_name)-4] + '_' + str(num_frame) + '_' + str(sample)
-        matp.imshow(component_sample, cmap="gray", aspect="auto")
+        matp.imshow(im, cmap="gray", aspect="auto")
         matp.savefig(f'{filename}.pdf')
         matp.close()
 
@@ -126,6 +125,12 @@ class VideoParser():
         except Exception as e:
             print('Something went wrong!')
             print(e)
+    
+    def component_to_image(self, component_sample, sampling=1):
+        component_sample = np.reshape(component_sample, (int(self.__height/sampling), int(self.__width/sampling)))
+        im = Image.fromarray(np.uint8(component_sample), "L")
+        return im
+
 
 parser = VideoParser("ice_cif.y4m")
 y, cb, cr = parser.get_frame(40)
