@@ -3,7 +3,7 @@ from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as matp
 from PIL import Image
-import scipy.ndimage
+#import scipy.ndimage
 import skimage
 
 
@@ -89,6 +89,7 @@ class VideoParser():
         the given sample and filename. Sample: inform 0 for Y, 1 for Cb and 2 for Cr; if not informed, Y is used.'''
         if not(0 <= sample <= 2):
             print('Sample value must be between 0 and 2.')
+            return
         component_sample = self.get_frame(num_frame)[sample]
         print(self.__size[0], self.__size[sample])
         print((self.__size[0]/self.__size[sample]))
@@ -142,6 +143,16 @@ class VideoParser():
         except Exception as e:
             print('Something went wrong!')
             print(e)
+
+    @staticmethod
+    def generate_ndarray(component: int, reference_frame: int, other_frames: Tuple):
+        '''Generates a ndarray using the given component and frames; component: inform 0 for Y,
+        1 for Cb and 2 for Cr.'''
+        if not(0 <= component <= 2):
+            print('Component value must be between 0 and 2.')
+            return
+        
+
 
 
 parser = VideoParser("ice_cif.y4m")
