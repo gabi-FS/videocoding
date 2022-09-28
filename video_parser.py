@@ -1,9 +1,10 @@
+from copy import copy
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as matp
 from PIL import Image
 import scipy.ndimage
-#import tensorflow as tf
+import skimage
 
 
 class VideoParser():
@@ -149,7 +150,11 @@ parser.plot_component_frame(2, sample=2)
 parser.plot_frame(2)
 f1 = parser.frame_to_image(parser.get_frame(2))
 f2 = parser.frame_to_image(parser.get_frame(2))
-#im1 = tf.image.convert_image_dtype(f2, tf.uint8)
-#im2 = tf.image.convert_image_dtype(f2, tf.uint8)
-#psnr2 = tf.image.psnr(im1, im2, max_val=255)
-#print(psnr2)
+f1_narr = parser.get_frame(2)[0]
+f2_narr = parser.get_frame(2)[0]
+print(f1_narr)
+f2_narr = copy(f2_narr)
+f2_narr[0] = 162
+
+
+print(skimage.metrics.peak_signal_noise_ratio(f1_narr, f2_narr))
