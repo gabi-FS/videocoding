@@ -145,14 +145,29 @@ class VideoParser():
             print(e)
 
     @staticmethod
-    def generate_ndarray(component: int, reference_frame: int, other_frames: Tuple):
+    def generate_ndarray(component: int, frames):
         '''Generates a ndarray using the given component and frames; component: inform 0 for Y,
-        1 for Cb and 2 for Cr.'''
+        1 for Cb and 2 for Cr; frames: Tuple[Tuple[int, VideoParser]] - inform tuples containing an object VideoParser and the frame's number.'''
         if not(0 <= component <= 2):
             print('Component value must be between 0 and 2.')
             return
+        test_list = []
+        height = frames[0][1].height
+        width = frames[0][1].width
+        for data in frames:
+            if height != data[1].height or width != data[1].width:
+                print('Dimensions in frames do not match, please verify your entries!')
+                return
+            frame = data[1].get_frame(data[0])[component]
+            test_list.append(frame)
+        ndarray = np.array([tuple(test_list), len(test_list), height, width, component], dtype=object)
+        return ndarray
         
-
+    @staticmethod
+    def get_psnr(array):
+        for i in range(1, array[1]):
+            psnr = skimage.metrics.peak_signal_noise_ratio(array[0][0], array[0][i])
+            print(f'PSNR 0-{i}: {psnr}\n')
 
 
 parser = VideoParser("ice_cif.y4m")
@@ -163,10 +178,19 @@ parser.plot_frame(2)
 f1 = parser.frame_to_image(parser.get_frame(2))
 f2 = parser.frame_to_image(parser.get_frame(2))
 f1_narr = parser.get_frame(2)[0]
-f2_narr = parser.get_frame(2)[0]
+f2_narr = parser.get_frame(3)[0]
 print(f1_narr)
-f2_narr = copy(f2_narr)
+
+
+'''f2_narr = copy(f2_narr)
 f2_narr[0] = 162
 
 
+a = [(f2_narr, f1_narr), 2, parser.width, parser.height, 0]
+b = np.array(a, dtype=object)
+print(b)'''
+
 print(skimage.metrics.peak_signal_noise_ratio(f1_narr, f2_narr))
+
+arr = VideoParser.generate_ndarray(0, ((2, parser), (3, parser)))
+VideoParser.get_psnr(arr)
