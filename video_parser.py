@@ -166,8 +166,17 @@ class VideoParser():
     @staticmethod
     def get_psnr(array):
         for i in range(1, array[1]):
-            psnr = skimage.metrics.peak_signal_noise_ratio(array[0][0], array[0][i])
-            print(f'PSNR 0-{i}: {psnr}\n')
+            if np.array_equal(array[0][0], array[0][i]):
+                print(f'PSNR 0-{i}: 100\n')
+            else:
+                psnr = skimage.metrics.peak_signal_noise_ratio(array[0][0], array[0][i])
+                print(f'PSNR 0-{i}: {psnr}\n')
+
+    @staticmethod
+    def get_mssim(array):
+        for i in range(1, array[1]):
+            psnr = skimage.metrics.structural_similarity(array[0][0], array[0][i])
+            print(f'MSSIM 0-{i}: {psnr}\n')
 
 
 parser = VideoParser("ice_cif.y4m")
@@ -177,20 +186,11 @@ parser.plot_component_frame(2, sample=2)
 parser.plot_frame(2)
 f1 = parser.frame_to_image(parser.get_frame(2))
 f2 = parser.frame_to_image(parser.get_frame(2))
-f1_narr = parser.get_frame(2)[0]
-f2_narr = parser.get_frame(3)[0]
+f1_narr = parser.get_frame(3)[0]
+f2_narr = parser.get_frame(2)[0]
 print(f1_narr)
 
 
-'''f2_narr = copy(f2_narr)
-f2_narr[0] = 162
-
-
-a = [(f2_narr, f1_narr), 2, parser.width, parser.height, 0]
-b = np.array(a, dtype=object)
-print(b)'''
-
-print(skimage.metrics.peak_signal_noise_ratio(f1_narr, f2_narr))
-
 arr = VideoParser.generate_ndarray(0, ((2, parser), (3, parser)))
 VideoParser.get_psnr(arr)
+VideoParser.get_mssim(arr)
