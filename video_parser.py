@@ -178,7 +178,7 @@ class VideoParser():
             psnr = skimage.metrics.structural_similarity(array[0][0], array[0][i])
             print(f'MSSIM 0-{i}: {psnr}\n')
 
-
+'''
 parser = VideoParser("ice_cif.y4m")
 y, cb, cr = parser.get_frame(40)
 parser.plot_component_frame(2)
@@ -190,7 +190,14 @@ f1_narr = parser.get_frame(3)[0]
 f2_narr = parser.get_frame(2)[0]
 print(f1_narr)
 
-
 arr = VideoParser.generate_ndarray(0, ((2, parser), (3, parser)))
+VideoParser.get_psnr(arr)
+VideoParser.get_mssim(arr)'''
+
+bus = VideoParser('bus_cif.y4m')
+bus_mci = VideoParser('bus_cif_recMCI.y4m')
+bus_vsbmc = VideoParser('bus_cif_recVSBMC.y4m')
+
+arr = VideoParser.generate_ndarray(0, ((2, bus), (2, bus_mci), (2, bus_vsbmc)))
 VideoParser.get_psnr(arr)
 VideoParser.get_mssim(arr)

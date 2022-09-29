@@ -2,9 +2,9 @@ import os
 import subprocess
 
 
-path = 'raw_videos' # change path
+path = '/home/gabriela/Documents/videos_teste' # change path
 
-videos = os.listdir(r'/home/eclvc/gabifurtado/raw_videos') # change path
+videos = os.listdir(r'/home/gabriela/Documents/videos_teste') # change path
 
 for video in videos:
 	#reduz o FPS dos vídeos
@@ -26,10 +26,12 @@ for video in videos:
 	print (minterpolateVSBMC)
 	print (minterpolateMCI)
 
-videos2 = os.listdir(r'/home/eclvc/gabifurtado/raw_videos') # change path
 
 # create file 
 '''
+videos2 = os.listdir(r'/home/eclvc/gabifurtado/raw_videos') # change path
+
+
 videos2.sort()
 arquivo = open('resultados.txt', 'a')
 for i in range(0, len(videos2), 4):
