@@ -5,6 +5,7 @@ import matplotlib.pyplot as matp
 from PIL import Image
 #import scipy.ndimage
 import skimage
+import os
 
 
 
@@ -178,6 +179,19 @@ class VideoParser():
             psnr = skimage.metrics.structural_similarity(array[0][0], array[0][i])
             print(f'MSSIM 0-{i}: {psnr}\n')
 
+    @staticmethod
+    def get_tuple(path:str, number:str):
+        dir = os.path.join(path, '{:04d}'.format(number))
+        try:
+            im1 = Image.open(os.path.join(dir, 'im1.png'))
+            im2 = Image.open(os.path.join(dir, 'im2.png'))
+            im3 = Image.open(os.path.join(dir, 'im3.png'))
+            #im1.show()
+            return (im1, im2, im3)
+        except Exception as e:
+            print('Something went wrong!')
+            print(e)
+
 '''
 parser = VideoParser("ice_cif.y4m")
 y, cb, cr = parser.get_frame(40)
@@ -201,3 +215,5 @@ bus_vsbmc = VideoParser('bus_cif_recVSBMC.y4m')
 arr = VideoParser.generate_ndarray(0, ((2, bus), (2, bus_mci), (2, bus_vsbmc)))
 VideoParser.get_psnr(arr)
 VideoParser.get_mssim(arr)
+
+bus.get_tuple('/home/gabrielafs/Documentos/UFSC/Video_coding/datasets/target/00001', 389)
