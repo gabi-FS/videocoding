@@ -152,25 +152,10 @@ class VideoParser():
             print(e)
 
     @staticmethod
-    def generate_ndarray_from_video(component: int, video, frames):
-        '''Generates a ndarray using the given component, frames, and VideoParser object; component: inform 0 for Y,
-        1 for Cb and 2 for Cr; video: VideoParser object; frames: Tuple[int] - inform tuples frame's number.'''
-        if not (0 <= component <= 2):
-            print('Component value must be between 0 and 2.')
-            return
-        test_list = []
-        height = video.height
-        width = video.width
-        for data in frames:
-            frame = video.get_frame(data)[component]
-            test_list.append(frame)
-        ndarray = np.array([tuple(test_list), len(
-            test_list), height, width, component], dtype=object)
-        return ndarray
-
-    @staticmethod
-    def get_psnr(original_array, test_array):
-        for i in range(original_array[1]):
+    def get_psnr(original_array, test_array, component=0):  # arrumar o jeito que pega os frames
+        if len(test_array[0][0][0][0]) > 1:
+            test_arr = test_array
+        for i in range(original_array[1][:][:]):
             if np.array_equal(original_array[0][i], test_array[0][i]):
                 print(f'PSNR {i}: inf\n')
             else:
@@ -179,7 +164,7 @@ class VideoParser():
                 print(f'PSNR {i}: {psnr}\n')
 
     @staticmethod
-    def get_mssim(original_array, test_array):
+    def get_mssim(original_array, test_array, component):  # arrumar o jeito que pega os frames
         for i in range(original_array[1]):
             mssim = skimage.metrics.structural_similarity(
                 original_array[0][i], test_array[0][i])
@@ -199,31 +184,44 @@ class VideoParser():
             print(e)
 
     @staticmethod
-    def generate_ndarray_from_tuple(component: int, frames_tuple: Tuple):
-        if not (0 <= component <= 3):
+    def generate_ndarray_from_video(component: int, video, sets_of_frames):
+        '''Generates a ndarray using the given component, frames, and VideoParser object; component: inform 0 for Y,
+        1 for Cb and 2 for Cr; video: VideoParser object; frames: Tuple[Tuple[int]] - inform tuple of testing sets, 
+        each one being a tuple containing numbers of frames.'''
+        if not (0 <= component <= 2):
             print('Component value must be between 0 and 2.')
             return
+        test_list = []
+        height = video.height
+        width = video.width
+        for set in sets_of_frames:
+            aux = []
+            for data in set:
+                frame = video.get_frame(data)[component]
+                frame = np.reshape(frame, (height, width, 1))
+                aux.append(frame)
+            test_list.append(aux)
+        ndarray = np.array(test_list)
+        return ndarray
+
+    @staticmethod
+    def generate_ndarray_from_tuple(frames_tuple: Tuple):
         frames_list = []
-        height = frames_tuple[0].height
-        width = frames_tuple[0].width
-        for im in frames_tuple:
-            array = np.array(im)
-            if component < 3:
-                im_comp = array.copy()
-                im_comp = im_comp[:, :, component]
-                frames_list.append(im_comp)
-            else:
-                im_y, im_cb, im_cr = array.copy(), array.copy(), array.copy()
-                im_y = im_y[:, :, 0]
-                im_cb = im_cb[:, :, 1]
-                im_cr = im_cr[:, :, 2]
-                frames_list.append((im_y, im_cb, im_cr))
-        ndarray = np.array([tuple(frames_list), len(
-            frames_list), height, width, component], dtype=object)
+        height = frames_tuple[0][0].height
+        width = frames_tuple[0][0].width
+        print(height, ' ', width)
+        for set in frames_tuple:
+            aux = []
+            for im in set:
+                array = np.array(im)
+                print(array.shape)
+                aux.append(array)
+            frames_list.append(aux)
+        ndarray = np.array(frames_list)
         print(ndarray.shape)
-        print(len(ndarray[0]))
-        print(ndarray[1])
-        print(ndarray)
+        # print(len(ndarray[0]))
+        # print(ndarray[1])
+        # print(ndarray)
         return ndarray
 
 
@@ -247,20 +245,53 @@ bus = VideoParser('bus_cif.y4m')
 bus_mci = VideoParser('bus_cif_recMCI.y4m')
 bus_vsbmc = VideoParser('bus_cif_recVSBMC.y4m')
 
-ori_arr = VideoParser.generate_ndarray_from_video(0, bus, (1, 2, 4))
-test_arr = VideoParser.generate_ndarray_from_video(0, bus_mci, (1, 2, 4))
-test_arr2 = VideoParser.generate_ndarray_from_video(0, bus_vsbmc, (1, 2, 4))
+ori_arr = VideoParser.generate_ndarray_from_video(
+    0, bus, ((1, 2, 4), (3, 6, 8)))
+test_arr = VideoParser.generate_ndarray_from_video(
+    0, bus_mci, ((1, 2, 4), (3, 6, 8)))
+test_arr2 = VideoParser.generate_ndarray_from_video(
+    0, bus_vsbmc, ((1, 2, 4), (3, 6, 8)))
 
-VideoParser.get_psnr(ori_arr, test_arr)
-VideoParser.get_mssim(ori_arr, test_arr2)
+#VideoParser.get_psnr(ori_arr, test_arr)
+#VideoParser.get_mssim(ori_arr, test_arr2)
 
-# VideoParser.get_tuple(
-#    '/home/gabrielafs/Documentos/UFSC/Video_coding/datasets/target/00001', 389)
+t1 = VideoParser.get_tuple(
+    '/home/gabrielafs/Documentos/UFSC/Video_coding/datasets/target/00001', 389)
+t2 = VideoParser.get_tuple(
+    '/home/gabrielafs/Documentos/UFSC/Video_coding/datasets/target/00001', 402)
 
+array = VideoParser.generate_ndarray_from_tuple((t1, t2))
+
+
+'''
 im = Image.open(
     '/home/gabriela/Documents/videos_raw/Middlebury/Art-2views-3illum-3exp/Art/Illum1/Exp1/view1.png')
 im2 = Image.open(
     '/home/gabriela/Documents/videos_raw/Middlebury/Art-2views-3illum-3exp/Art/Illum1/Exp1/view5.png')
 
+
 a = VideoParser.generate_ndarray_from_tuple(0, (im, im2))
 VideoParser.get_psnr(a, a)
+
+'''
+
+test_list = []
+for set in ((1, 2, 3),):
+    aux = []
+    for data in set:
+        frame = bus.get_frame(data)[0]
+        frame = np.reshape(frame, (bus.height, bus.width, 1))
+        aux.append(frame)
+    test_list.append(aux)
+
+
+ndarray = np.array(test_list)
+print(len(ndarray[0][0][0][0]))
+print(array.shape)
+print(array[0][0].size)
+print(len(array[0][0]))
+aaa = np.split(array[0][0], 3, axis=2)
+print(len(aaa))
+a = np.reshape(aaa[0], (256, 448))
+image = Image.fromarray(a)
+image.show()
