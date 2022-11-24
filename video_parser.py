@@ -152,23 +152,67 @@ class VideoParser():
             print(e)
 
     @staticmethod
-    def get_psnr(original_array, test_array, component=0):  # arrumar o jeito que pega os frames
+    def get_psnr(original_array, test_array, component=0):
+        '''Calculates PSNR metric for each frame in original and test arrays 
+        and returns it. If component is -1, it will return PSNR for all channels; 
+        otherwise, inform 0 for Y, 1 for Cb and 2 for Cr; if not informed, Y is used.'''
+        if not (-1 <= component <= 2):
+            print('''Component value must be - 1, if you want to calculate the metric
+                for all channels or between 0 and 2, corresponding to the wanted channel.''')
+            return
+        multiple_components = False
         if len(test_array[0][0][0][0]) > 1:
-            test_arr = test_array
-        for i in range(original_array[1][:][:]):
-            if np.array_equal(original_array[0][i], test_array[0][i]):
-                print(f'PSNR {i}: inf\n')
-            else:
-                psnr = skimage.metrics.peak_signal_noise_ratio(
-                    original_array[0][i], test_array[0][i])
-                print(f'PSNR {i}: {psnr}\n')
+            multiple_components = True
+        for t in range(len(original_array)):
+            for f in range(len(original_array[0])):
+                # print(original_array[t][f].shape)MSSIM
+                if multiple_components and component > -1:
+                    ori_arr = np.split(original_array[t][f], 3, axis=2)
+                    test_arr = np.split(test_array[t][f], 3, axis=2)
+                    if np.array_equal(ori_arr[component], test_arr[component]):
+                        print(f'PSNR [tuple {t}, frame {f}]: inf\n')
+                    else:
+                        psnr = skimage.metrics.peak_signal_noise_ratio(
+                            ori_arr[component], test_arr[component])
+                        print(f'PSNR [tuple {t}, frame {f}]: {psnr}\n')
+                else:
+                    if np.array_equal(original_array[t][f], test_array[t][f]):
+                        print(f'PSNR [tuple {t}, frame {f}]: inf\n')
+                    else:
+                        psnr = skimage.metrics.peak_signal_noise_ratio(
+                            original_array[t][f], test_array[t][f])
+                        if component == -1:
+                            psnr = psnr/3
+                            # maybe change the treatment for multiple channels later
+                            # weighted avarage?
+                        print(f'PSNR [tuple {t}, frame {f}]: {psnr}\n')
 
     @staticmethod
-    def get_mssim(original_array, test_array, component):  # arrumar o jeito que pega os frames
-        for i in range(original_array[1]):
-            mssim = skimage.metrics.structural_similarity(
-                original_array[0][i], test_array[0][i])
-            print(f'MSSIM {i}: {mssim}\n')
+    def get_mssim(original_array, test_array, component=0):
+        '''Calculates MSSIM metric for each frame in original and test arrays 
+        and returns it. If component is -1, it will return MSSIM for all channels; 
+        otherwise, inform 0 for Y, 1 for Cb and 2 for Cr; if not informed, Y is used.'''
+        if not (-1 <= component <= 2):
+            print('''Component value must be - 1, if you want to calculate the metric
+                for all channels or between 0 and 2, corresponding to the wanted channel.''')
+            return
+        multiple_components = False
+        if len(test_array[0][0][0][0]) > 1:
+            multiple_components = True
+        for t in range(len(original_array)):
+            for f in range(len(original_array[0])):
+                # print(original_array[t][f].shape)
+                if multiple_components and component > -1:
+                    ori_arr = np.split(original_array[t][f], 3, axis=2)
+                    test_arr = np.split(test_array[t][f], 3, axis=2)
+                    mssim = skimage.metrics.structural_similarity(
+                        ori_arr[component], test_arr[component], channel_axis=2)
+                    print(f'MSSIM [tuple {t}, frame {f}]: {mssim}\n')
+                else:
+                    print(original_array[t][f].shape)
+                    mssim = skimage.metrics.structural_similarity(
+                        original_array[t][f], test_array[t][f], channel_axis=2)
+                    print(f'MSSIM [tuple {t}, frame {f}]: {mssim}\n')
 
     @staticmethod
     def get_tuple(path: str, number: str):
@@ -252,8 +296,8 @@ test_arr = VideoParser.generate_ndarray_from_video(
 test_arr2 = VideoParser.generate_ndarray_from_video(
     0, bus_vsbmc, ((1, 2, 4), (3, 6, 8)))
 
-#VideoParser.get_psnr(ori_arr, test_arr)
-#VideoParser.get_mssim(ori_arr, test_arr2)
+VideoParser.get_psnr(ori_arr, test_arr)
+VideoParser.get_mssim(ori_arr, test_arr2)
 
 t1 = VideoParser.get_tuple(
     '/home/gabrielafs/Documentos/UFSC/Video_coding/datasets/target/00001', 389)
@@ -261,7 +305,10 @@ t2 = VideoParser.get_tuple(
     '/home/gabrielafs/Documentos/UFSC/Video_coding/datasets/target/00001', 402)
 
 array = VideoParser.generate_ndarray_from_tuple((t1, t2))
+array_modified = array*2
 
+VideoParser.get_mssim(array, array_modified, -1)
+VideoParser.get_psnr(array, array_modified, -1)
 
 '''
 im = Image.open(
@@ -275,6 +322,7 @@ VideoParser.get_psnr(a, a)
 
 '''
 
+'''
 test_list = []
 for set in ((1, 2, 3),):
     aux = []
@@ -295,3 +343,4 @@ print(len(aaa))
 a = np.reshape(aaa[0], (256, 448))
 image = Image.fromarray(a)
 image.show()
+'''
